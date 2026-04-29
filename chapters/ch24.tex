@@ -479,14 +479,20 @@ We analyse both algorithms under the PRAM model, considering both the
 
 \subsubsection{Hillis \& Steele}
 At step $d$, every processor $i$ (with $i \ge 2^{d-1}$) reads
-$A[i - 2^{d-1}]$ and $A[i]$, then writes back to $A[i]$. Different
-processors read \emph{different} positions in any given step --- the
-read pattern is a stride-$2^{d-1}$ shift --- so concurrent reads are
-\emph{not} required, and the algorithm runs natively on EREW PRAM.
+$A[i - 2^{d-1}]$ and its own current cell $A[i]$, then writes the
+sum back to $A[i]$. Now consider two adjacent active processors, $i$
+and $i + 2^{d-1}$: processor $i$ reads $A[i]$ as its source, while
+processor $i + 2^{d-1}$ reads $A[(i+2^{d-1}) - 2^{d-1}] = A[i]$
+simultaneously as its operand. Both processors therefore read the
+\emph{same} memory cell concurrently. Since writes remain exclusive
+(only processor $i$ writes to $A[i]$), Hillis \& Steele requires a
+\textbf{CREW PRAM} --- concurrent reads, exclusive writes.
 
 \begin{itemize}[leftmargin=*]
   \item \textbf{Steps:} $\lceil \log_2 n \rceil$.
   \item \textbf{Work:} $W(n) = O(n \log_2 n)$.
+  \item \textbf{PRAM model:} \textbf{CREW} (concurrent reads on shared
+        source cells; all writes exclusive).
   \item \textbf{Time on $p$ processors:}
         $T(n,p) = O\bigl(n \log_2 n / p + \log_2 n\bigr)$ assuming
         Brent's scheduling.
@@ -538,12 +544,15 @@ The depth stays the same; only redundant work is removed.
 \end{keyideabox}
 
 \begin{notebox}
-\textbf{CREW vs. EREW.} Both algorithms as presented are EREW. With
-concurrent reads (CREW), one can broadcast values cheaply, which lets
-certain scan-with-bounded-operators variants achieve depth
+\textbf{CREW vs.\ EREW.} As established above, Hillis \& Steele requires
+\textbf{CREW PRAM} because adjacent processors concurrently read the same
+source cell at every step. Blelloch is \textbf{EREW PRAM} because the
+stride-based addressing ensures all reads and writes are to distinct
+addresses within any parallel step. With concurrent reads (CREW), one can
+additionally broadcast values cheaply, which lets certain
+scan-with-bounded-operators variants achieve depth
 $O(\log n / \log\log n)$ (Cole, 1986; Blelloch, 1990, ch.~4). Without
-that machinery, $\Theta(\log n)$ is the standard bound on both EREW
-and CREW.
+that machinery, $\Theta(\log n)$ is the standard depth bound.
 \end{notebox}
 
 % ----------------------------------------------------------
@@ -597,6 +606,25 @@ Blelloch           & $\Theta(n)$         & $\Theta(\log n)$
 \bottomrule
 \end{tabular}
 \end{center}
+
+\begin{notebox}
+\textbf{Why the Blelloch depth term is $\log n$ here but $\log p$ elsewhere.}
+Brent's Theorem is applied above using the algorithm's intrinsic depth $D$
+when scheduled on $n$ dedicated processors: for Blelloch this is
+$2\lceil\log_2 n\rceil = \Theta(\log n)$. This gives the bound
+$T(n,p) \le n/p + \log n$.
+
+In Section~\ref{sec:pram-analysis}, we instead use a refined
+\emph{chunk\,+\,tree} analysis: each of the $p$ processors first
+handles $n/p$ elements sequentially (sequential scan of its chunk),
+then the $p$ partial results are combined via a $p$-leaf Blelloch tree
+of depth $\log_2 p$. This gives the tighter formula
+$T_{\mathrm{Blelloch}}(n,p) = O(n/p + \log_2 p)$, which is strictly
+better than $O(n/p + \log n)$ whenever $p < n$. The comparison table
+in Section~\ref{sec:pram-analysis} uses the tighter $\log p$ bound;
+the table above shows the direct Brent application using the algorithm's
+raw depth $\log n$.
+\end{notebox}
 
 \noindent Blelloch achieves \textbf{optimal speedup} when $n/p \gg \log n$:
 under that condition $T \approx n/p$, which is the best any algorithm using
@@ -1910,8 +1938,8 @@ primary authorship and specific subsection refinements:
           Prefix Sum problem statement (Sections 6.1--6.3).
     \item \emph{Primary Author:} Hillis \& Steele recap and analysis
           (Section 6.4).
-    \item \emph{Primary Author:} Side by Side trace : Hillis and Steele vs Blelloch (Section 6.7.1) and (Section 6.7.2)
-    \item \emph{Primary Author:} Parallel Radix Sort algorithm, PRAM Analysis, time complexity illustrations.(Section 6.8)
+    \item \emph{Primary Author:} Side-by-Side Trace: Hillis \& Steele vs.\ Blelloch (Sections 6.7.1 and 6.7.2).
+    \item \emph{Primary Author:} Parallel Radix Sort algorithm, PRAM Analysis, and time complexity illustrations (Section 6.8).
     \item \emph{Primary Author:} Problems and Solutions (Section 6.9).
   \end{itemize}
 
@@ -1921,7 +1949,7 @@ primary authorship and specific subsection refinements:
           phases (Sections 6.5.1--6.5.2).
     \item \emph{Primary Author:} Worked examples and tree diagrams for
           the scan algorithms.
-    \item \emph{Primary Author:} Exercies 6.1 - 6.10.
+    \item \emph{Primary Author:} Exercises 6.1--6.10.
           
   \end{itemize}
   
@@ -1930,7 +1958,7 @@ primary authorship and specific subsection refinements:
     \item \emph{Primary Author:} PRAM Analysis of Hillis and Steele and Blelloch algorithms
     (Section 6.5.3)
     \item \emph{Primary Author:} Side by Side trace : Hillis and Steele vs Blelloch (Section 6.7.3)
-    \item \emph{Primary Author:} Stability of Parallel Radix Sort and Worked Example (Section 6.8.4) and (Section 6.8.2)
+    \item \emph{Primary Author:} Stability of Parallel Radix Sort and Worked Example (Sections 6.8.2 and 6.8.4).
           
   \end{itemize}
 
@@ -1979,4 +2007,3 @@ primary authorship and specific subsection refinements:
 \end{itemize}
 
 \end{document}
-
