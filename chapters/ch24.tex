@@ -1,134 +1,11 @@
-\documentclass[11pt,openany]{book}
+% ============================================================
+% ch24.tex  ---  Lecture 24: Parallel Algorithms
+%               Prefix Sum and Radix Sort
+% This file is part of the col380-book repository.
+% Compile via the top-level main.tex using ppbook.cls.
+% ============================================================
 
-% ----- Packages -----
-\usepackage[a4paper,margin=1in]{geometry}
-\usepackage[T1]{fontenc}
-\usepackage{amsmath,amssymb,amsthm}
-\usepackage{graphicx}
-\usepackage{xcolor}
-\usepackage{booktabs}
-\usepackage{array}
-\usepackage{tabularx}
-\usepackage{enumitem}
-\usepackage{listings}
-\usepackage{tcolorbox}
-\tcbuselibrary{breakable,skins}
-\usepackage{tikz}
-\usetikzlibrary{trees,positioning,arrows.meta,shapes.geometric,calc,shadows}
-\usepackage{hyperref}
-\hypersetup{colorlinks=true,linkcolor=blue!60!black,urlcolor=blue!60!black,
-            citecolor=blue!60!black,linktoc=all}
-\usepackage{caption}
-\usepackage{titlesec}
-\usepackage{fancyhdr}
-\usepackage{textcomp}
-
-% ----- Listings setup -----
-\definecolor{codebg}{RGB}{248,248,248}
-\definecolor{codecomment}{RGB}{0,128,0}
-\definecolor{codekw}{RGB}{0,0,180}
-\definecolor{codestr}{RGB}{163,21,21}
-
-\lstdefinestyle{cudastyle}{
-  basicstyle=\ttfamily\small,
-  backgroundcolor=\color{codebg},
-  commentstyle=\color{codecomment}\itshape,
-  keywordstyle=\color{codekw}\bfseries,
-  stringstyle=\color{codestr},
-  numbers=none,
-  showstringspaces=false,
-  breaklines=true,
-  frame=single,
-  rulecolor=\color{black!30},
-  framesep=4pt,
-  xleftmargin=4pt,
-  xrightmargin=4pt,
-  language=C++,
-  morekeywords={__global__,__device__,__host__,blockIdx,threadIdx,blockDim,gridDim,
-                __syncthreads,__threadfence,proc,procedure,for,while,if,else,parallel,
-                in,from,to,downto,by,scan,prescan,split,reduce,permute,return}
-}
-\lstset{style=cudastyle}
-
-% ----- Box environments -----
-\newtcolorbox{notebox}{
-  enhanced, breakable, colback=blue!4, colframe=blue!50!black,
-  boxrule=0.4pt, arc=2mm, left=6pt, right=6pt, top=4pt, bottom=4pt,
-  before skip=8pt, after skip=8pt
-}
-\newtcolorbox{pitfallbox}{
-  enhanced, breakable, colback=red!4, colframe=red!60!black,
-  boxrule=0.4pt, arc=2mm, left=6pt, right=6pt, top=4pt, bottom=4pt,
-  before skip=8pt, after skip=8pt
-}
-\newtcolorbox{keyideabox}{
-  enhanced, breakable, colback=green!4, colframe=green!50!black,
-  boxrule=0.4pt, arc=2mm, left=6pt, right=6pt, top=4pt, bottom=4pt,
-  before skip=8pt, after skip=8pt
-}
-\newtcolorbox{examplebox}{
-  enhanced, breakable, colback=orange!4, colframe=orange!70!black,
-  boxrule=0.4pt, arc=2mm, left=6pt, right=6pt, top=4pt, bottom=4pt,
-  before skip=8pt, after skip=8pt
-}
-\newtcolorbox{exercisebox}{
-  enhanced, breakable, colback=purple!4, colframe=purple!50!black,
-  boxrule=0.4pt, arc=2mm, left=6pt, right=6pt, top=4pt, bottom=4pt,
-  before skip=8pt, after skip=8pt
-}
-
-% ----- Header / footer -----
-\pagestyle{fancy}
-\fancyhf{}
-\fancyhead[LE,RO]{\thepage}
-\fancyhead[RE]{\nouppercase{\leftmark}}
-\fancyhead[LO]{\nouppercase{\rightmark}}
-\renewcommand{\headrulewidth}{0.4pt}
-\setlength{\headheight}{14pt}
-
-% ----- Title spacing -----
-\titlespacing*{\chapter}{0pt}{-20pt}{20pt}
-
-% ----- Document -----
-\begin{document}
-
-% ============ TITLE PAGE ============
-\begin{titlepage}
-  \begin{center}
-    \vspace*{2cm}
-    {\Huge \bfseries Parallel Programming\par}
-    \vspace{0.6cm}
-    {\Large Concepts, Patterns, and\\ Practice\par}
-    \vfill
-    {\large Author Name\par}
-    \vspace{0.5cm}
-    {\large April 25, 2026\par}
-  \end{center}
-\end{titlepage}
-
-% ============ COPYRIGHT PAGE ============
-\thispagestyle{empty}
-\noindent\textbf{Copyright}\\[1em]
-Copyright \textcopyright\ 2026 Author Name.\\[0.5em]
-All rights reserved.\\[0.5em]
-No part of this book may be reproduced, stored in a retrieval system, or
-transmitted in any form or by any means, electronic, mechanical, photocopying,
-recording, or otherwise, without prior written permission of the publisher,
-except for brief quotations in reviews.\\[0.5em]
-First edition: 2026
-\clearpage
-
-% ============ TABLE OF CONTENTS ============
-\frontmatter
-\setcounter{tocdepth}{2}
-\tableofcontents
-\clearpage
-
-% ============ MAIN CONTENT ============
-\mainmatter
-\setcounter{chapter}{5}
-
-\chapter{Lecture 24: Parallel Algorithms --- Prefix Sum and Radix Sort}
+\chapter{Parallel Algorithms --- Prefix Sum and Radix Sort}
 
 \section{Overview}
 This lecture introduces two foundational parallel algorithms that appear
@@ -137,8 +14,8 @@ systems: \textbf{parallel prefix sum} (also called \emph{scan}) and
 \textbf{parallel radix sort}. Prefix sum is a deceptively simple operation
 that, despite appearing inherently sequential, admits efficient parallel
 algorithms with $O(\log_2 n)$ depth. We study two classical algorithms ---
-the \emph{Hillis \& Steele} algorithm (1986) and the \emph{Blelloch} algorithm
-(1990) --- and analyse their work, depth, and PRAM complexity. Radix sort, a
+the \emph{Hillis \& Steele} algorithm (1986)~\cite{hillis1986} and the \emph{Blelloch} algorithm
+(1990)~\cite{blelloch1990} --- and analyse their work, depth, and PRAM complexity. Radix sort, a
 non-comparison-based sorting algorithm, is then shown to be a natural client
 of parallel scan: its key step (the \emph{scatter}) depends on a prefix-sum
 over a histogram of digit counts.
@@ -179,12 +56,12 @@ The all-prefix-sums operation is parameterised by any binary associative
 operator $\oplus$; addition is the canonical choice but maximum, minimum,
 and logical OR are all common.
 
-\begin{notebox}
+\begin{ppnote}
 \textbf{Note:} Although the recurrence $P[i] = P[i-1] + A[i]$ looks
 inherently sequential --- each value depends on the previous one --- the
 operator $\oplus$ being \emph{associative} is enough to enable
 parallelism. We can re-bracket the sums freely without changing the result.
-\end{notebox}
+\end{ppnote}
 
 \paragraph{Sequential algorithm.}
 The sequential version walks left-to-right, maintaining a running sum:
@@ -207,7 +84,7 @@ T(n,1) \;=\; \Theta(n).
 \section{Hillis \& Steele Algorithm (Brief Recap)}
 \label{sec:hillis-steele}
 
-The Hillis \& Steele algorithm (1986), discussed in the previous lecture,
+The Hillis \& Steele algorithm (1986)~\cite{hillis1986}, discussed in the previous lecture,
 is the most direct parallel scan. It uses doubling-stride updates on a
 single array.
 
@@ -221,7 +98,7 @@ A[i] \;\leftarrow\; A[i] + A[i - 2^{(d-1)}].
 After $\lceil \log_2 n \rceil$ steps, $A[i]$ contains the prefix sum
 $\sum_{k=0}^{i} A_{\mathrm{orig}}[k]$.
 
-\begin{examplebox}
+\begin{ppexample}
 \textbf{Example (from lecture).} Consider the input
 $[3,\ 1,\ 4,\ 1,\ 5,\ 9,\ 2]$:
 \begin{center}
@@ -237,7 +114,7 @@ $[3,\ 1,\ 4,\ 1,\ 5,\ 9,\ 2]$:
 \end{tabular}
 \end{center}
 After three rounds, every entry holds the correct prefix sum.
-\end{examplebox}
+\end{ppexample}
 
 \subsection{Why It Works and Its Cost}
 At step $d$, each cell holds the sum of the last $2^{(d-1)}$ original
@@ -253,12 +130,12 @@ Hence after $\lceil \log_2 n \rceil$ steps the window covers every prefix.
         with $n$.
 \end{itemize}
 
-\begin{pitfallbox}
+\begin{pppitfall}
 \textbf{Not work-efficient.} The sequential version uses only
 $\Theta(n)$ additions. Hillis \& Steele uses $\Theta(n \log_2 n)$ ---
 a $\log_2 n$ factor more work. On a real machine where each operation
 costs energy and bandwidth, this overhead is significant.
-\end{pitfallbox}
+\end{pppitfall}
 
 % ----------------------------------------------------------
 \section{Blelloch Algorithm (1990)}
@@ -352,7 +229,7 @@ total sum at the root), the rules are:
         accumulates everything to its left from the up-sweep).
 \end{itemize}
 
-\begin{notebox}
+\begin{ppnote}
 \textbf{Why the inclusive rule works.} After the up-sweep, every right
 child at a given level already holds the sum of its entire subtree. When
 the parent passes its value (say $S$) down, the right child should hold
@@ -367,7 +244,7 @@ inverse). For addition this is fine, but for operators like $\max$ or
 bitwise-OR there is no inverse, and the inclusive variant cannot be
 computed this way. The exclusive variant (below) avoids this limitation
 entirely and works for any associative operator.
-\end{notebox}
+\end{ppnote}
 
 \subsubsection{Exclusive Down-Sweep (the standard Blelloch variant)}
 The more common \emph{exclusive scan} version is even cleaner. It uses the
@@ -443,7 +320,7 @@ $0 + 11 = 11$. At level 0 the entries
 $\{0,3\}$ from the leftmost subtree are exactly the exclusive prefixes
 of $\{3,1\}$.
 
-\begin{notebox}
+\begin{ppnote}
 \textbf{Note (PRAM code, EREW).}
 The down-sweep can be expressed in place as:
 \begin{lstlisting}
@@ -454,8 +331,8 @@ for d from log2(n) - 1 downto 0
         A[i + 2^d - 1]          <- A[i + 2^(d+1) - 1]  % left  <- parent
         A[i + 2^(d+1) - 1]      <- t + A[i + 2^(d+1) - 1]  % right <- parent + saved
 \end{lstlisting}
-This is exactly the algorithm given by Blelloch (1990).
-\end{notebox}
+This is exactly the algorithm given by Blelloch (1990)~\cite{blelloch1990}.
+\end{ppnote}
 
 \paragraph{Cost of the down-sweep.}
 Each level performs the same number of operations as the corresponding
@@ -534,16 +411,16 @@ In-place?            & Yes                         & Yes \\
 \end{tabular}
 \end{center}
 
-\begin{keyideabox}
+\begin{ppkey}
 \textbf{Why Blelloch wins on work.} Hillis \& Steele activates roughly
 $n$ processors at \emph{every} level, so its work is the depth times the
 breadth: $n \log n$. Blelloch's tree halves the active processor count
 at each level of the up-sweep ($n/2$, $n/4$, $n/8, \ldots$), and again
 on the down-sweep, giving a geometric series that sums to $\Theta(n)$.
 The depth stays the same; only redundant work is removed.
-\end{keyideabox}
+\end{ppkey}
 
-\begin{notebox}
+\begin{ppnote}
 \textbf{CREW vs.\ EREW.} As established above, Hillis \& Steele requires
 \textbf{CREW PRAM} because adjacent processors concurrently read the same
 source cell at every step. Blelloch is \textbf{EREW PRAM} because the
@@ -551,9 +428,9 @@ stride-based addressing ensures all reads and writes are to distinct
 addresses within any parallel step. With concurrent reads (CREW), one can
 additionally broadcast values cheaply, which lets certain
 scan-with-bounded-operators variants achieve depth
-$O(\log n / \log\log n)$ (Cole, 1986; Blelloch, 1990, ch.~4). Without
+$O(\log n / \log\log n)$ (Cole, 1986; Blelloch, 1990~\cite{blelloch1990}, ch.~4). Without
 that machinery, $\Theta(\log n)$ is the standard depth bound.
-\end{notebox}
+\end{ppnote}
 
 % ----------------------------------------------------------
 \section{Brent's Scheduling Theorem}
@@ -563,14 +440,14 @@ The analyses above repeatedly cite ``$T(n,p) = W/p + D$'' without formal
 justification. This section states and explains the theorem that underlies
 that bound.
 
-\begin{keyideabox}
-\textbf{Brent's Theorem (1974).} Let a parallel algorithm have total work
+\begin{ppkey}
+\textbf{Brent's Theorem (1974)~\cite{brent1974}.} Let a parallel algorithm have total work
 $W$ (number of operations) and depth $D$ (longest chain of dependencies).
 Then on $p$ processors, the algorithm can be scheduled to finish in time
 \[
 T(n,p) \;\le\; \left\lfloor \frac{W}{p} \right\rfloor + D.
 \]
-\end{keyideabox}
+\end{ppkey}
 
 \noindent\textbf{Proof sketch.} Consider the computation as a DAG with $W$
 nodes (operations) and depth $D$. A \emph{greedy} scheduler at each step
@@ -607,7 +484,7 @@ Blelloch           & $\Theta(n)$         & $\Theta(\log n)$
 \end{tabular}
 \end{center}
 
-\begin{notebox}
+\begin{ppnote}
 \textbf{Why the Blelloch depth term is $\log n$ here but $\log p$ elsewhere.}
 Brent's Theorem is applied above using the algorithm's intrinsic depth $D$
 when scheduled on $n$ dedicated processors: for Blelloch this is
@@ -624,7 +501,7 @@ better than $O(n/p + \log n)$ whenever $p < n$. The comparison table
 in Section~\ref{sec:pram-analysis} uses the tighter $\log p$ bound;
 the table above shows the direct Brent application using the algorithm's
 raw depth $\log n$.
-\end{notebox}
+\end{ppnote}
 
 \noindent Blelloch achieves \textbf{optimal speedup} when $n/p \gg \log n$:
 under that condition $T \approx n/p$, which is the best any algorithm using
@@ -688,14 +565,14 @@ Total $= 7 + 6 + 4 = \mathbf{17}$ additions.
 Sequential algorithm needs exactly $n-1 = 7$ additions.
 Hillis \& Steele does $\mathbf{17/7 \approx 2.4\times}$ more work.
 
-\begin{notebox}
+\begin{ppnote}
 \textbf{General formula.}
 $W_{\mathrm{HS}}(n)
 = \sum_{d=1}^{\log_2 n}(n - 2^{d-1})
 = n\log_2 n - (n-1)
 = \Theta(n\log_2 n)$.
 For $n = 8$: $8 \cdot 3 - 7 = 17$. \checkmark
-\end{notebox}
+\end{ppnote}
 
 \subsection{Blelloch Full Trace}
 
@@ -775,7 +652,7 @@ Blelloch           & 14                  & 6 ($2\log_2 8$)       & \textbf{Yes} 
 \end{tabular}
 \end{center}
 
-\begin{keyideabox}
+\begin{ppkey}
 \textbf{The key trade-off, made concrete.}
 Hillis \& Steele achieves its $O(\log_2 n)$ depth by keeping \emph{all}
 processors active at every level --- it pays for speed with extra work.
@@ -786,7 +663,7 @@ The total telescopes to $2(n-1)$, which is just $2\times$ the sequential
 cost regardless of $n$. The depth is $2\log_2 n$ (not $\log_2 n$ as in
 H\&S), but this constant factor is irrelevant asymptotically and
 negligible in practice compared to the $\log_2 n$ work overhead of H\&S.
-\end{keyideabox}
+\end{ppkey}
 
 % ----------------------------------------------------------
 \section{Parallel Radix Sort}
@@ -907,7 +784,7 @@ each own a contiguous chunk of the input of size $n/p$. To make every
 cost concrete, we will run a small worked example alongside the
 analysis.
 
-\begin{examplebox}
+\begin{ppexample}
 \textbf{Running example.} Take $n = 8$ keys, $p = 4$ processors, radix
 $k = 4$, and the array
 \[
@@ -928,7 +805,7 @@ $P_3$ & $[1,\ 2]$ \\
 \end{center}
 We will sort by the only digit (one pass suffices because all keys are
 single-digit). Final answer expected: $[0,0,1,1,2,2,3,3]$.
-\end{examplebox}
+\end{ppexample}
 
 \subsubsection{Step 1 --- Parallel Histogram}
 
@@ -953,13 +830,13 @@ Each processor reads $n/p = 2$ elements and performs one increment per
 element on its \emph{private} array of size $k$. There are no shared
 writes, so this phase is truly embarrassingly parallel.
 
-\begin{keyideabox}
+\begin{ppkey}
 \textbf{Why local counting is $\Theta(n/p)$.} Every processor does
 exactly $n/p$ reads and $n/p$ increments on memory it alone owns. No
 synchronisation, no contention. With $p$ processors running
 simultaneously, the wall-clock time is the time of one
 processor:~$\Theta(n/p)$.
-\end{keyideabox}
+\end{ppkey}
 
 \paragraph{1b. Combining local histograms (the source of $k\log_2 p$).}
 The local histograms now form a $p \times k$ matrix; the global
@@ -983,7 +860,7 @@ For our example ($p=4$, $k=4$, so $\log_2 p = 2$ rounds):
 \end{center}
 After two rounds, $P_0$ holds the global histogram $[2, 2, 2, 2]$.
 
-\begin{keyideabox}
+\begin{ppkey}
 \textbf{Where does $k \log_2 p$ come from?} At each of the $\log_2 p$
 rounds, each \emph{active} processor must add a partner's entire
 size-$k$ histogram to its own. That is $k$ scalar additions per active
@@ -997,7 +874,7 @@ round $r$), the wall-clock time is the sum over rounds:
 The factor of $k$ comes from the size of the object being communicated
 and added at each step; the factor of $\log_2 p$ comes from the depth
 of the reduction tree over $p$ processors.
-\end{keyideabox}
+\end{ppkey}
 
 \subsubsection{Step 2 --- Parallel Prefix Sum on the Global Histogram}
 The exclusive prefix-sum on the length-$k$ global histogram is exactly
@@ -1088,7 +965,7 @@ $P_3$ & $2$ (digit 2) & $5$ & $\text{out}[5] = 2$ \\
 \end{center}
 Final output: $[0,\ 0,\ 1,\ 1,\ 2,\ 2,\ 3,\ 3]$. Sorted, as required.
 
-\begin{keyideabox}
+\begin{ppkey}
 \textbf{Why the scatter is $\Theta(n/p)$, not slower.}
 \begin{enumerate}[leftmargin=*]
   \item \emph{No two processors write to the same output position.}
@@ -1104,9 +981,9 @@ Final output: $[0,\ 0,\ 1,\ 1,\ 2,\ 2,\ 3,\ 3]$. Sorted, as required.
 \end{enumerate}
 With $p$ processors running in parallel, each finishing $n/p$ writes
 independently, total time is $\Theta(n/p)$.
-\end{keyideabox}
+\end{ppkey}
 
-\begin{notebox}
+\begin{ppnote}
 \textbf{Where the racing would have been.} If we had skipped step 3a
 and just shared one global write-pointer per bucket, every processor
 with a digit-$v$ element would race on the same pointer. The fix
@@ -1115,7 +992,7 @@ elements per processor target the same bucket and atomic contention
 turns scatter into $\Theta(n)$ --- losing the parallelism entirely.
 The prefix-sum-based offset computation completely eliminates this
 race \emph{ahead of time}.
-\end{notebox}
+\end{ppnote}
 
 \subsection{Stability of Parallel Radix Sort}
 \label{sec:stability}
@@ -1140,7 +1017,7 @@ chunk in the output, and so on. This gives global stability: for any two
 elements $x$ and $y$ with the same digit, if $x$ appeared before $y$ in the
 input, then $x$ appears before $y$ in the output.
 
-\begin{pitfallbox}
+\begin{pppitfall}
 \textbf{Common mistake: chunk assignment breaks stability.} If processors
 are assigned \emph{non-contiguous} stripes of the input (e.g.\ $P_i$ owns
 all elements at positions $\equiv i \pmod{p}$), the offset computation still
@@ -1148,7 +1025,7 @@ works, but the output order within a bucket follows the interleaved pattern
 of the stripe, not the original input order. The sort may still produce a
 sorted output on the last pass, but intermediate passes lose stability. Using
 contiguous chunks is the correct choice.
-\end{pitfallbox}
+\end{pppitfall}
 
 \subsection{PRAM Complexity Analysis}
 \label{sec:radix-pram}
@@ -1197,14 +1074,14 @@ There are $d$ passes (one per digit position), so:
         small chunks before sorting.
 \end{itemize}
 
-\begin{notebox}
+\begin{ppnote}
 \textbf{Stability matters.} For multi-pass radix sort to be correct,
 each digit pass must be \emph{stable}: it must preserve the relative
 order of elements that share the same digit value. The scatter step
 above is stable because each processor writes its elements in input
 order into its bucket region, and processors with earlier chunks own
 earlier output positions.
-\end{notebox}
+\end{ppnote}
 
 \paragraph{Choosing the radix $k$ optimally.}
 An interesting engineering question is: what is the best choice of $k$
@@ -1315,8 +1192,8 @@ The two standard fixes:
 \section{Exercises and Solutions}
 \label{sec:exercises}
 
-\begin{exercisebox}
-\textbf{Exercise 6.1.} State the formal definition of the
+\begin{ppexercises}
+\textbf{Exercise 24.1.} State the formal definition of the
 all-prefix-sums operation. What property of the operator $\oplus$ is
 required for parallelisation, and why?
 
@@ -1330,10 +1207,10 @@ parallel algorithm we compute partial sums on subtrees and then combine
 them, which produces the correct answer only because the order of
 combination does not matter --- exactly what associativity guarantees.
 Commutativity is \emph{not} required.
-\end{exercisebox}
+\end{ppexercises}
 
-\begin{exercisebox}
-\textbf{Exercise 6.2.} Apply Hillis \& Steele to the array
+\begin{ppexercises}
+\textbf{Exercise 24.2.} Apply Hillis \& Steele to the array
 $[2,\ 3,\ 5,\ 7,\ 11,\ 13,\ 17,\ 19]$ and show the array after each
 of the $\log_2 8 = 3$ passes.
 
@@ -1346,10 +1223,10 @@ of the $\log_2 8 = 3$ passes.
   \item After $d=3$ (stride 4): $[2, 5, 10, 17, 28, 41, 58, 77]$
 \end{itemize}
 The final array contains the inclusive prefix sums.
-\end{exercisebox}
+\end{ppexercises}
 
-\begin{exercisebox}
-\textbf{Exercise 6.3.} Why is Blelloch's algorithm work-efficient
+\begin{ppexercises}
+\textbf{Exercise 24.3.} Why is Blelloch's algorithm work-efficient
 while Hillis \& Steele is not? Quantify the difference using the
 geometric series argument.
 
@@ -1363,10 +1240,10 @@ $\sum_{d=0}^{\log_2 n - 1} n/2^{d+1} = n - 1 = \Theta(n)$. The
 down-sweep matches this count. Total Blelloch work is therefore
 $\Theta(n)$, asymptotically matching the sequential algorithm. The
 extra $\log_2 n$ factor in Hillis \& Steele is pure overhead.
-\end{exercisebox}
+\end{ppexercises}
 
-\begin{exercisebox}
-\textbf{Exercise 6.4.} Show how to convert an inclusive scan into an
+\begin{ppexercises}
+\textbf{Exercise 24.4.} Show how to convert an inclusive scan into an
 exclusive scan, and vice versa, in $O(1)$ extra depth.
 
 \medskip
@@ -1377,10 +1254,10 @@ an exclusive scan by shifting one position to the left and appending
 the total sum at the end (the total is the right-most element of the
 exclusive scan plus the original last element). Both shifts are
 $O(1)$ depth on a PRAM (parallel data movement).
-\end{exercisebox}
+\end{ppexercises}
 
-\begin{exercisebox}
-\textbf{Exercise 6.5.} On an EREW PRAM with $p = n$ processors,
+\begin{ppexercises}
+\textbf{Exercise 24.5.} On an EREW PRAM with $p = n$ processors,
 what are the time complexities of (a) Hillis \& Steele and
 (b) Blelloch?
 
@@ -1399,10 +1276,10 @@ what are the time complexities of (a) Hillis \& Steele and
 \end{enumerate}
 Both achieve $O(\log_2 n)$ time when $p = n$; the difference shows up
 in work and energy, not in step count.
-\end{exercisebox}
+\end{ppexercises}
 
-\begin{exercisebox}
-\textbf{Exercise 6.6.} Trace the in-place up-sweep of Blelloch's
+\begin{ppexercises}
+\textbf{Exercise 24.6.} Trace the in-place up-sweep of Blelloch's
 algorithm on the array $A = [3,\ 1,\ 7,\ 0,\ 4,\ 1,\ 6,\ 3]$. List
 the contents of $A$ after each level.
 
@@ -1416,10 +1293,10 @@ the contents of $A$ after each level.
 \end{itemize}
 The total $25$ correctly resides at $A[7]$, and the right-children of
 the conceptual tree are preserved.
-\end{exercisebox}
+\end{ppexercises}
 
-\begin{exercisebox}
-\textbf{Exercise 6.7.} A radix-sort pass uses radix $k = 256$ on
+\begin{ppexercises}
+\textbf{Exercise 24.7.} A radix-sort pass uses radix $k = 256$ on
 $n = 2^{30}$ keys with $p = 64$ processors. How many digit passes are
 needed for 32-bit keys, and what is the dominant term in the total
 running time?
@@ -1435,10 +1312,10 @@ T \;=\; \Theta\!\bigl(d \cdot (n/p + k \log_2 p)\bigr)
 The first term ($2^{24} = 16{,}777{,}216$) absolutely dominates the
 second ($1536$), so the dominant cost is $\Theta(d \cdot n / p) = \Theta(4 n / p)$:
 the $n/p$ data-movement work per pass times four passes.
-\end{exercisebox}
+\end{ppexercises}
 
-\begin{exercisebox}
-\textbf{Exercise 6.8.} Why must the parallel scatter step in radix sort
+\begin{ppexercises}
+\textbf{Exercise 24.8.} Why must the parallel scatter step in radix sort
 use precomputed offsets rather than a single shared write pointer per
 bucket? What property of radix sort would otherwise be violated?
 
@@ -1453,10 +1330,10 @@ each pass must preserve the order established by previous (less
 significant) passes. The precomputed-offset approach assigns each
 processor its own contiguous output region per bucket, so writes never
 collide and stability is preserved automatically.
-\end{exercisebox}
+\end{ppexercises}
 
-\begin{exercisebox}
-\textbf{Exercise 6.9.} On the input $A = [27,\ 11,\ 51,\ 5,\ 49,\
+\begin{ppexercises}
+\textbf{Exercise 24.9.} On the input $A = [27,\ 11,\ 51,\ 5,\ 49,\
 36,\ 15,\ 23]$, perform one pass of LSD radix sort with $k = 10$
 (sort by the units digit). Show the histogram, the prefix sum, and
 the resulting array.
@@ -1472,10 +1349,10 @@ the resulting array.
 \end{itemize}
 The array is sorted by the units digit; subsequent passes on the tens
 digit (and so on) would complete the sort.
-\end{exercisebox}
+\end{ppexercises}
 
-\begin{exercisebox}
-\textbf{Exercise 6.10.} Suppose someone proposes to skip the prefix-sum
+\begin{ppexercises}
+\textbf{Exercise 24.10.} Suppose someone proposes to skip the prefix-sum
 step and instead use a barrier between the histogram and the scatter,
 relying on each processor reading the global histogram directly. Does
 this work? What is the asymptotic cost?
@@ -1492,10 +1369,10 @@ once in parallel via Blelloch's scan costs $\Theta(k/p + \log_2 p)$
 total. So the prefix-sum step is unavoidable; the only question is
 whether it is performed redundantly per processor (bad) or once with
 parallel scan (good).
-\end{exercisebox}
+\end{ppexercises}
 
-\begin{exercisebox}
-\textbf{Exercise 6.11.} Exercise~6.6 left the up-sweep of Blelloch's
+\begin{ppexercises}
+\textbf{Exercise 24.11.} Exercise~24.6 left the up-sweep of Blelloch's
 algorithm on $A = [3,\ 1,\ 7,\ 0,\ 4,\ 1,\ 6,\ 3]$ with the array in
 state $[3,\ 4,\ 7,\ 11,\ 4,\ 5,\ 6,\ 25]$ and the total sum $25$ at
 $A[7]$. (a)~Complete the algorithm by performing the exclusive
@@ -1538,10 +1415,10 @@ exclusive: \textbf{CREW PRAM}.
 apart, so all read \emph{and} write addresses are distinct across all
 concurrent iterations by the stride argument. No address is shared for
 reading or writing: \textbf{EREW PRAM}.
-\end{exercisebox}
+\end{ppexercises}
 
-\begin{exercisebox}
-\textbf{Exercise 6.12.} Using the work-count results from
+\begin{ppexercises}
+\textbf{Exercise 24.12.} Using the work-count results from
 Section~\ref{sec:sidebyside}, verify the general formula
 $W_{\mathrm{HS}}(n) = n\log_2 n - (n-1)$ for $n = 8$ and show that
 Blelloch's total work is exactly $2(n-1)$ for any $n$ that is a power
@@ -1574,10 +1451,10 @@ Hillis \& Steele for $n=8$. More importantly, the ratio
 $W_{\mathrm{HS}} / W_{\mathrm{B}} \approx \frac{n \log_2 n}{2n}
 = \frac{\log_2 n}{2}$ grows without bound, so Blelloch's advantage
 widens as $n$ increases.
-\end{exercisebox}
+\end{ppexercises}
 
-\begin{exercisebox}
-\textbf{Exercise 6.13.} You have $n = 2^{20}$ keys, $p = 32$
+\begin{ppexercises}
+\textbf{Exercise 24.13.} You have $n = 2^{20}$ keys, $p = 32$
 processors, and you choose radix $k = 16$ (4-bit digits). (a)~How many
 passes are needed to sort 32-bit keys? (b)~Compute the time per pass
 and the total parallel time. (c)~Which term dominates, and what does
@@ -1605,10 +1482,10 @@ processors will reduce $T$ further (since $n/p$ shrinks), and
 the sort is \emph{not} yet in the coordination-bound regime.
 Increasing $p$ from 32 to 64 would halve the dominant term to $16384$,
 giving close to a $2\times$ speedup.
-\end{exercisebox}
+\end{ppexercises}
 
-\begin{exercisebox}
-\textbf{Exercise 6.14.} Both Hillis \& Steele and Blelloch achieve
+\begin{ppexercises}
+\textbf{Exercise 24.14.} Both Hillis \& Steele and Blelloch achieve
 $\Theta(\log_2 n)$ depth, yet their behaviour on $p < n$ processors
 differs sharply. Write down the time for each algorithm on $p$
 processors (using $T(n,p) \le W/p + D$), then find the smallest $n$
@@ -1637,12 +1514,12 @@ for large $n$):
 So for \textbf{any} $n > 2$ (and $p = 8$), Blelloch uses less total
 work and finishes in less parallel time. The crossover is already at
 $n = 3$ --- Blelloch dominates for essentially all practical inputs.
-\end{exercisebox}
+\end{ppexercises}
 
-%-------- NEW EXERCISES (6.15--6.19) --------
+%-------- NEW EXERCISES (24.15--24.18) --------
 
-\begin{exercisebox}
-\textbf{Exercise 6.15 (Brent's Theorem applied).}
+\begin{ppexercises}
+\textbf{Exercise 24.15 (Brent's Theorem applied).}
 A parallel algorithm has work $W = 3n$ and depth $D = 4\log_2 n$.
 (a)~Using Brent's Theorem, give an upper bound on its runtime on $p$
 processors. (b)~For $n = 2^{20}$ and $p = 16$, compute the numerical
@@ -1670,10 +1547,10 @@ As $n \to \infty$ with fixed $p$, the term $4p\log_2 n$ grows much more
 slowly than $3n$, so $E(n,p) \to 1$. Yes, efficiency approaches 1 ---
 the algorithm is work-efficient and achieves asymptotically optimal
 utilisation.
-\end{exercisebox}
+\end{ppexercises}
 
-\begin{exercisebox}
-\textbf{Exercise 6.16 (Scan with non-addition operators).}
+\begin{ppexercises}
+\textbf{Exercise 24.16 (Scan with non-addition operators).}
 Consider computing the \emph{all-prefix-maxima} of an array
 $A = [3,\ 1,\ 7,\ 2,\ 8,\ 4,\ 6,\ 5]$ (i.e., prefix scan under the
 $\max$ operator).
@@ -1726,10 +1603,10 @@ $d=3$ (+4)    & 3 & 3 & 7 & 7 & 8 & 8 & 8 & 8 \\
 \end{center}
 Final inclusive prefix maxima: $[3,\ 3,\ 7,\ 7,\ 8,\ 8,\ 8,\ 8]$.
 Each entry $i$ equals $\max(A[0], \ldots, A[i])$.
-\end{exercisebox}
+\end{ppexercises}
 
-\begin{exercisebox}
-\textbf{Exercise 6.17 (Parallel radix sort: scaling $p$).}
+\begin{ppexercises}
+\textbf{Exercise 24.17 (Parallel radix sort: scaling $p$).}
 You are sorting $n = 2^{24}$ 64-bit keys using byte-radix ($k = 256$,
 $d = 8$ passes). Compare the total parallel time for $p = 4, 16, 64$
 processors using the formula $T = \Theta(d \cdot (n/p + k \log_2 p))$.
@@ -1775,10 +1652,10 @@ Beyond $p^*$, doubling $p$ no longer halves the total time because the
 coordination term $k \log_2 p$ grows and the data-movement term $n/p$
 shrinks below it. Adding more processors is \textbf{not} beneficial
 past $p^*$.
-\end{exercisebox}
+\end{ppexercises}
 
-\begin{exercisebox}
-\textbf{Exercise 6.18 (Stability verification by example).}
+\begin{ppexercises}
+\textbf{Exercise 24.18 (Stability verification by example).}
 Consider the array $A = [12,\ 32,\ 22,\ 42,\ 11,\ 21,\ 31,\ 41]$
 (all two-digit numbers). Perform the first pass of LSD radix sort
 (sort by units digit, $k = 10$) using $p = 2$ processors:
@@ -1844,86 +1721,14 @@ Output: $[11,\ 21,\ 31,\ 41,\ 12,\ 32,\ 22,\ 42]$.
 All digit-2 elements appear in positions 4--7 in the order
 $12, 32, 22, 42$ --- exactly their input order from $P_0$. The pass is
 stable. \checkmark
-\end{exercisebox}
-
-\begin{exercisebox}
-\textbf{Exercise 6.19 (Optimal radix choice).}
-You need to sort $n = 2^{28}$ 32-bit keys on $p = 128$ processors.
-You can choose any radix $k$ that is a power of two.
-
-(a)~Write the total parallel time as a function of $k$ (use exact
-powers of two for $k$ and compute $d = 32 / \log_2 k$).
-
-(b)~Evaluate the total time for $k \in \{4, 16, 256, 65536\}$ and
-fill in the table.
-
-(c)~Which $k$ minimises the total time? Explain intuitively why
-very large $k$ can hurt despite reducing the number of passes.
-
-\medskip
-\textbf{Solution.}
-
-\textbf{(a)} With $d = 32 / \log_2 k$, the total time is:
-\[
-T(k) \;=\; \frac{32}{\log_2 k} \cdot \left(\frac{n}{p} + k\log_2 p\right)
-\;=\; \frac{32}{\log_2 k} \cdot \left(\frac{2^{28}}{128} + 7k\right)
-\;=\; \frac{32}{\log_2 k} \cdot (2^{21} + 7k).
-\]
-
-\textbf{(b)} Evaluating:
-\begin{center}
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{ccccc}
-\toprule
-$k$ & $\log_2 k$ & $d$ & $n/p + 7k$ & \textbf{Total $T(k)$} \\
-\midrule
-$4$      & 2  & 16 & $2{,}097{,}152 + 28 = 2{,}097{,}180$
-         & $16 \times 2{,}097{,}180 = 33{,}554{,}880$ \\
-$16$     & 4  & 8  & $2{,}097{,}152 + 112 = 2{,}097{,}264$
-         & $8 \times 2{,}097{,}264 = 16{,}778{,}112$ \\
-$256$    & 8  & 4  & $2{,}097{,}152 + 1{,}792 = 2{,}098{,}944$
-         & $4 \times 2{,}098{,}944 = 8{,}395{,}776$ \\
-$65536$  & 16 & 2  & $2{,}097{,}152 + 458{,}752 = 2{,}555{,}904$
-         & $2 \times 2{,}555{,}904 = 5{,}111{,}808$ \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\textbf{(c)} Based on this table, $k = 65536$ gives the smallest total
-time. Intuitively, reducing the number of passes saves repeated
-data-movement ($n/p$) cost. However, for \emph{very} large $k$, the
-coordination term $7k$ can itself become large and eventually dominate
---- at that point, increasing $k$ worsens performance. With our
-parameters, $n/p = 2{,}097{,}152 \gg 7k$ even for $k = 65536$
-($7k = 458{,}752$), so we have not yet crossed the coordination-bound
-regime, and larger $k$ still wins. The inflection point (where
-$n/p = 7k$) is at $k^* = n/(7p) = 2^{28}/(7 \times 128) \approx
-300{,}000$, which is beyond our table's range.
-\end{exercisebox}
+\end{ppexercises}
 
 % ----------------------------------------------------------
-\section{References}
-\begin{itemize}[leftmargin=*]
-  \item Subodh Sharma, \emph{COL 380 --- Introduction to Parallel and
-        Distributed Programming}, Course slides, Lecture 24:
-        Parallel Algorithms.
-  \item Guy E. Blelloch, \emph{Prefix Sums and Their Applications},
-        Technical Report CMU-CS-90-190, School of Computer Science,
-        Carnegie Mellon University, November 1990.
-  \item W. Daniel Hillis and Guy L. Steele Jr., \emph{Data Parallel
-        Algorithms}, Communications of the ACM, 29(12):1170--1183,
-        December 1986.
-  \item R. P. Brent, ``The Parallel Evaluation of General Arithmetic
-        Expressions,'' \emph{Journal of the ACM}, 21(2):201--206, 1974.
-  \item Ananth Grama, Anshul Gupta, George Karypis, and Vipin Kumar,
-        \emph{Introduction to Parallel Computing}, Addison-Wesley,
-        2003.
-  \item David B. Kirk and Wen-mei W. Hwu, \emph{Programming Massively
-        Parallel Processors: A Hands-on Approach}, Morgan Kaufmann.
-  \item Mark Harris, Shubhabrata Sengupta, and John D. Owens,
-        \emph{Parallel Prefix Sum (Scan) with CUDA}, in \emph{GPU Gems
-        3}, Addison-Wesley, 2007.
-\end{itemize}
+% References for this chapter are collected in backmatter/bibliography.bib.
+% Key citations: \cite{sharma2024lec24}, \cite{blelloch1990},
+% \cite{hillis1986}, \cite{brent1974}, \cite{grama2003},
+% \cite{kirk2016}, \cite{harris2007}.
+% The full bibliography is rendered at the end of the book via main.tex.
 
 % ----------------------------------------------------------
 \section{Contribution Statement}
@@ -1935,30 +1740,30 @@ primary authorship and specific subsection refinements:
   \item \textbf{Aditya Yadav (2023CS51009)}
   \begin{itemize}
     \item \emph{Primary Author:} Overview, Key Learning Outcomes, key takeaways and
-          Prefix Sum problem statement (Sections 6.1--6.3).
+          Prefix Sum problem statement (Sections 24.1--24.3).
     \item \emph{Primary Author:} Hillis \& Steele recap and analysis
-          (Section 6.4).
-    \item \emph{Primary Author:} Side-by-Side Trace: Hillis \& Steele vs.\ Blelloch (Sections 6.7.1 and 6.7.2).
-    \item \emph{Primary Author:} Parallel Radix Sort algorithm, PRAM Analysis, and time complexity illustrations (Section 6.8).
-    \item \emph{Primary Author:} Problems and Solutions (Section 6.9).
+          (Section 24.4).
+    \item \emph{Primary Author:} Side-by-Side Trace: Hillis \& Steele vs.\ Blelloch (Sections 24.7.1 and 24.7.2).
+    \item \emph{Primary Author:} Parallel Radix Sort algorithm, PRAM Analysis, and time complexity illustrations (Section 24.8).
+    \item \emph{Primary Author:} Problems and Solutions (Section 24.9).
   \end{itemize}
 
   \item \textbf{Naman Goyal (2022CS11080)}
   \begin{itemize}
     \item \emph{Primary Author:} Blelloch's up-sweep and down-sweep
-          phases (Sections 6.5.1--6.5.2).
+          phases (Sections 24.5.1--24.5.2).
     \item \emph{Primary Author:} Worked examples and tree diagrams for
           the scan algorithms.
-    \item \emph{Primary Author:} Exercises 6.1--6.10.
+    \item \emph{Primary Author:} Exercises 24.1--24.10.
           
   \end{itemize}
   
     \item \textbf{Satwik (2022CS51150)}
   \begin{itemize}
     \item \emph{Primary Author:} PRAM Analysis of Hillis and Steele and Blelloch algorithms
-    (Section 6.5.3)
-    \item \emph{Primary Author:} Side by Side trace : Hillis and Steele vs Blelloch (Section 6.7.3)
-    \item \emph{Primary Author:} Stability of Parallel Radix Sort and Worked Example (Sections 6.8.2 and 6.8.4).
+    (Section 24.5.3)
+    \item \emph{Primary Author:} Side by Side trace : Hillis and Steele vs Blelloch (Section 24.7.3)
+    \item \emph{Primary Author:} Stability of Parallel Radix Sort and Worked Example (Sections 24.8.2 and 24.8.4).
           
   \end{itemize}
 
@@ -1972,7 +1777,7 @@ primary authorship and specific subsection refinements:
           counts per level, work-comparison summary table, and a
           key-idea box explaining the trade-off between depth and
           work-efficiency.
-    \item \emph{Primary Author:} Exercises 6.11--6.14 and their
+    \item \emph{Primary Author:} Exercises 24.11--24.14 and their
           solutions --- covering the Blelloch down-sweep trace,
           PRAM model classification (EREW vs.\ CREW) for both
           algorithms, exact work-count verification via geometric
@@ -1991,19 +1796,17 @@ primary authorship and specific subsection refinements:
           the contiguous-chunk scatter is stable, and a pitfall note
           on the failure of striped chunk assignments.
     \item \emph{Primary Author:} Extended note on the inclusive
-          down-sweep (Section 6.5.2) explaining why invertibility of
+          down-sweep (Section 24.5.2) explaining why invertibility of
           $\oplus$ is required and why non-invertible operators
           (e.g., $\max$) necessitate the exclusive variant.
     \item \emph{Primary Author:} ``Choosing the radix $k$ optimally''
           paragraph in Section~\ref{sec:radix-pram} --- derivation of
           the optimal radix $k^* \approx n/(p \log_2 p)$ balancing
           pass count and coordination cost.
-    \item \emph{Primary Author:} Exercises 6.15--6.19 and their full
+    \item \emph{Primary Author:} Exercises 24.15--24.18 and their full
           solutions --- covering Brent's Theorem numerically, scan
           under $\max$, parallel radix-sort scaling across processor
           counts, stability verification by worked example, and
           optimal radix-choice analysis.
   \end{itemize}
 \end{itemize}
-
-\end{document}

@@ -14,8 +14,8 @@
 
 % --- Fonts (pick one set) ---
 \RequirePackage[T1]{fontenc}
-\RequirePackage{lmodern} % safe default, widely available
-\RequirePackage{microtype}
+% \RequirePackage{lmodern} % disabled for font compat % safe default, widely available
+% \RequirePackage{microtype} % disabled for compatibility
 
 % --- Spacing and paragraphs ---
 \RequirePackage{setspace}
@@ -97,6 +97,13 @@
 % --- Index (optional) ---
 \RequirePackage{makeidx}
 \makeindex
+
+% --- TikZ (needed by diagram-heavy chapters) ---
+\RequirePackage{tikz}
+\usetikzlibrary{trees,positioning,arrows.meta,shapes.geometric,calc,shadows}
+
+% --- Additional table/array support ---
+\RequirePackage{array}
 
 % --- Boxes and code ---
 \RequirePackage{ppboxes}
